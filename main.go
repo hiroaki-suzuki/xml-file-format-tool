@@ -26,37 +26,35 @@ func main() {
 		}
 
 		for _, fileInfo := range fileInfos {
-			if fileInfo.IsDir() {
-				format(rootPath, fileInfo)
-			}
+			format(rootPath, fileInfo)
 		}
 	}
 }
 
-func format(parentDirPath string, dirInfo os.FileInfo) {
-	dirPath := filepath.Join(parentDirPath, dirInfo.Name())
-	fileInfos, err := ioutil.ReadDir(dirPath)
-	if err != nil {
-		log.Fatal(err)
-	}
+func format(parentDirPath string, fileInfo os.FileInfo) {
+	if fileInfo.IsDir() {
+		dirPath := filepath.Join(parentDirPath, fileInfo.Name())
+		fileInfos, err := ioutil.ReadDir(dirPath)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	for _, fileInfo := range fileInfos {
-		if fileInfo.IsDir() {
+		for _, fileInfo := range fileInfos {
 			format(dirPath, fileInfo)
-		} else if strings.HasSuffix(fileInfo.Name(), ".xml") {
-			targetFilePath := filepath.Join(dirPath, fileInfo.Name())
-			content, err := ioutil.ReadFile(targetFilePath)
-			if err != nil {
-				log.Fatal(err)
-			}
+		}
+	} else if strings.HasSuffix(fileInfo.Name(), ".xml") {
+		targetFilePath := filepath.Join(parentDirPath, fileInfo.Name())
+		content, err := ioutil.ReadFile(targetFilePath)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			formattedXML := xmlfmt.FormatXML(string(content), "", "    ")
-			formattedXML = duplicateLineBreakRep.ReplaceAllString(formattedXML, "\r\n")
-			formattedXML = firstLineLineBreakRep.ReplaceAllString(formattedXML, "")
-			formattedXML = endLineLineBreakRep.ReplaceAllString(formattedXML, "")
-			if err = ioutil.WriteFile(targetFilePath, []byte(formattedXML), fileInfo.Mode().Perm()); err != nil {
-				log.Fatal(err)
-			}
+		formattedXML := xmlfmt.FormatXML(string(content), "", "    ")
+		formattedXML = duplicateLineBreakRep.ReplaceAllString(formattedXML, "\r\n")
+		formattedXML = firstLineLineBreakRep.ReplaceAllString(formattedXML, "")
+		formattedXML = endLineLineBreakRep.ReplaceAllString(formattedXML, "")
+		if err = ioutil.WriteFile(targetFilePath, []byte(formattedXML), fileInfo.Mode().Perm()); err != nil {
+			log.Fatal(err)
 		}
 	}
 }
